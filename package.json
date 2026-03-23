@@ -13,7 +13,10 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "mcp": "tsx mcp/index.ts",
-    "install-claude": "bash scripts/install.sh"
+    "install-claude": "bash scripts/install.sh",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:all": "vitest run && cd client && npx vitest run"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.8",
@@ -32,6 +35,7 @@
     "concurrently": "^9.1.2",
     "drizzle-kit": "^0.31.1",
     "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.1"
   }
 }
