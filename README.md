@@ -4,6 +4,14 @@ Local-first personal finance with AI. Connect your bank accounts, analyze spendi
 
 Your data stays on your machine. No cloud. No subscription. Open source.
 
+<p align="center">
+  <img src="demo-dashboard.gif" alt="Fino dashboard" />
+</p>
+
+<p align="center">
+  <img src="demo-mcp.gif" alt="Fino with Claude" />
+</p>
+
 ---
 
 ## Table of Contents
