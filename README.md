@@ -151,14 +151,58 @@ One command sets up everything for Claude Code, Claude Desktop, and Cowork:
 npm run install-claude
 ```
 
-This:
+This configures the Fino MCP server and installs all slash commands globally. Restart Claude after running this.
 
-- Configures the Fino MCP server (reads your `.env` automatically, no env var duplication)
-- Installs all slash commands globally
+**The MCP server runs independently.** You do not need the web server running. Claude spawns Fino automatically when you ask about your finances.
 
-Restart Claude after running this.
+### MCP Server Configuration
 
-**The MCP server runs independently.** You do not need the web server running. Claude spawns Fino automatically when you ask about your finances. The web dashboard (`npm run go`) is only for the browser UI.
+The MCP server needs access to your `.env` file for Plaid credentials. Add the Fino server to your MCP client config:
+
+**Claude Code** (`~/.claude.json` under `mcpServers`):
+
+```json
+{
+  "fino": {
+    "type": "stdio",
+    "command": "npx",
+    "args": ["tsx", "/path/to/fino/mcp/index.ts"],
+    "env": {
+      "PLAID_CLIENT_ID": "your_client_id",
+      "PLAID_SECRET": "your_secret",
+      "PLAID_ENV": "production",
+      "ENCRYPTION_KEY": "your_64_char_hex_key",
+      "DOTENV_CONFIG_PATH": "/path/to/fino/.env"
+    }
+  }
+}
+```
+
+**Claude Desktop** (`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "fino": {
+      "command": "npx",
+      "args": ["tsx", "/path/to/fino/mcp/index.ts"],
+      "env": {
+        "PLAID_CLIENT_ID": "your_client_id",
+        "PLAID_SECRET": "your_secret",
+        "PLAID_ENV": "production",
+        "ENCRYPTION_KEY": "your_64_char_hex_key",
+        "DOTENV_CONFIG_PATH": "/path/to/fino/.env"
+      }
+    }
+  }
+}
+```
+
+Replace `/path/to/fino` with your actual Fino install directory and fill in your credentials from `.env`. The `npm run install-claude` script does this automatically.
+
+**Why pass env vars?** MCP clients spawn the server as a child process. The working directory and environment may differ from your terminal, so dotenv file loading is unreliable. The `npm run install-claude` script reads your `.env` and passes the values directly to the MCP config. If you're configuring manually, copy the env vars from your `.env` into the config's `env` block.
+
+The MCP config lives in `~/.claude.json` (Claude Code) or `claude_desktop_config.json` (Claude Desktop), both outside the repo. Your secrets never get committed.
 
 ### Slash Commands
 
@@ -175,6 +219,8 @@ You can also ask naturally: "what did I spend on food this month?" or "show me m
 
 ### MCP Tools
 
+**Data tools:**
+
 | Tool                     | Description                     |
 | ------------------------ | ------------------------------- |
 | `sync_transactions`      | Force sync with Plaid           |
@@ -184,6 +230,16 @@ You can also ask naturally: "what did I spend on food this month?" or "show me m
 | `get_balances`           | Net worth breakdown             |
 | `get_spending_summary`   | Spending by category            |
 | `get_monthly_comparison` | Income vs spending per month    |
+
+**Memory tools (learnings persist across conversations):**
+
+| Tool                     | Description                                            |
+| ------------------------ | ------------------------------------------------------ |
+| `search_learnings`       | Search stored financial memories by description        |
+| `get_learning`           | Load full content of a specific memory by ID           |
+| `save_learning`          | Store a financial insight, pattern, rule, or goal      |
+| `mark_learning_stale`    | Archive a memory (kept for history, excluded from search) |
+| `delete_learning`        | Permanently remove a memory                            |
 
 All read tools auto-sync with Plaid when data is older than `SYNC_THRESHOLD_HOURS` (default 4).
 

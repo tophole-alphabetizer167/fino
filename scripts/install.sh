@@ -68,6 +68,14 @@ echo -e "${GREEN}Installing Fino for Claude...${RESET}"
 echo -e "${DIM}Project: $PROJECT_DIR${RESET}"
 echo ""
 
+# Check .env exists
+if [ ! -f "$PROJECT_DIR/.env" ]; then
+  echo -e "${YELLOW}Warning: .env file not found at $PROJECT_DIR/.env${RESET}"
+  echo -e "${DIM}Copy .env.example to .env and add your Plaid credentials before using Fino.${RESET}"
+  echo -e "${DIM}  cp .env.example .env${RESET}"
+  echo ""
+fi
+
 # --- Skills ---
 echo "Installing skills..."
 mkdir -p "$CLAUDE_DIR/skills"
@@ -94,7 +102,10 @@ if [ "$MODE" = "project" ]; then
     "$MCP_NAME": {
       "command": "npx",
       "args": ["tsx", "mcp/index.ts"],
-      "cwd": "$PROJECT_DIR"
+      "cwd": "$PROJECT_DIR",
+      "env": {
+        "DOTENV_CONFIG_PATH": "$PROJECT_DIR/.env"
+      }
     }
   }
 }
@@ -115,7 +126,10 @@ else
     "$MCP_NAME": {
       "command": "npx",
       "args": ["tsx", "mcp/index.ts"],
-      "cwd": "$PROJECT_DIR"
+      "cwd": "$PROJECT_DIR",
+      "env": {
+        "DOTENV_CONFIG_PATH": "$PROJECT_DIR/.env"
+      }
     }
   }
 }
@@ -125,12 +139,31 @@ EOF
     # Remove existing entry first to avoid duplicates
     claude mcp remove "$MCP_NAME" --scope user 2>/dev/null || true
 
-    # Add at user scope with absolute path so it works from any directory
-    claude mcp add \
+    # Read env vars from .env and pass them directly to the MCP config.
+    # MCP clients spawn child processes that may not inherit the shell env
+    # or be able to read .env files, so we inject the vars explicitly.
+    ENV_FLAGS=""
+    if [ -f "$PROJECT_DIR/.env" ]; then
+      while IFS='=' read -r key value; do
+        # Skip comments and empty lines
+        [[ -z "$key" || "$key" == \#* ]] && continue
+        # Strip surrounding quotes from value
+        value="${value%\"}"
+        value="${value#\"}"
+        value="${value%\'}"
+        value="${value#\'}"
+        ENV_FLAGS="$ENV_FLAGS -e $key=$value"
+      done < "$PROJECT_DIR/.env"
+    fi
+
+    # Always include DOTENV_CONFIG_PATH as a fallback
+    ENV_FLAGS="$ENV_FLAGS -e DOTENV_CONFIG_PATH=$PROJECT_DIR/.env"
+
+    eval claude mcp add "\"$MCP_NAME\"" \
       --transport stdio \
       --scope user \
-      "$MCP_NAME" \
-      -- npx tsx "$PROJECT_DIR/mcp/index.ts"
+      $ENV_FLAGS \
+      -- npx tsx "\"$PROJECT_DIR/mcp/index.ts\""
 
     echo -e "  ${GREEN}Installed '$MCP_NAME' MCP server at user scope${RESET}"
     echo -e "  ${DIM}Available in all projects and conversations${RESET}"

@@ -2,10 +2,31 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 
-// Load .env from project root (not cwd) so it works when spawned by Claude Code
+// Load .env — try multiple paths to handle different spawn contexts:
+// 1. DOTENV_CONFIG_PATH env var (set in MCP server config)
+// 2. Relative to this file's directory (../.env)
+// 3. cwd/.env
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-dotenv.config({ path: resolve(__dirname, '..', '.env') });
+const envPaths = [
+  process.env.DOTENV_CONFIG_PATH,
+  resolve(__dirname, '..', '.env'),
+  resolve(process.cwd(), '.env'),
+].filter(Boolean) as string[];
+
+let envLoaded = false;
+for (const envPath of envPaths) {
+  const result = dotenv.config({ path: envPath });
+  if (!result.error && process.env.PLAID_CLIENT_ID) {
+    console.error(`[fino] Loaded env from ${envPath}`);
+    envLoaded = true;
+    break;
+  }
+}
+if (!envLoaded) {
+  console.error(`[fino] WARNING: Could not load .env from any path. Tried: ${envPaths.join(', ')}`);
+  console.error(`[fino] PLAID_CLIENT_ID=${process.env.PLAID_CLIENT_ID ? 'set' : 'MISSING'}, PLAID_SECRET=${process.env.PLAID_SECRET ? 'set' : 'MISSING'}`);
+}
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -73,19 +94,28 @@ async function _ensureFreshData(): Promise<string | null> {
 
   // Sync stale items
   const results = [];
+  let successCount = 0;
   for (const item of staleItems) {
     try {
       const result = await syncTransactions(item.id);
       const name = item.institutionName || item.id;
       results.push(`${name}: +${result.added} added, ${result.modified} modified, ${result.removed} removed`);
-    } catch (err) {
+      successCount++;
+    } catch (err: any) {
       const name = item.institutionName || item.id;
-      results.push(`${name}: sync failed (${String(err)})`);
+      // Extract Plaid error details if available
+      const plaidError = err?.response?.data;
+      const detail = plaidError?.error_message || plaidError?.error_code || String(err);
+      results.push(`${name}: sync failed (${detail})`);
     }
   }
 
-  syncedThisSession = true;
-  return `Auto-synced ${staleItems.length} stale item(s):\n${results.join('\n')}`;
+  // Only mark session as synced if at least one item succeeded.
+  // If all failed, allow retry on next tool call.
+  if (successCount > 0) {
+    syncedThisSession = true;
+  }
+  return `Auto-synced ${staleItems.length} stale item(s), ${successCount} succeeded:\n${results.join('\n')}`;
 }
 
 function formatTimeAgo(date: Date): string {
