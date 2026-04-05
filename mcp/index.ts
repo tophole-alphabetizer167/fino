@@ -203,6 +203,27 @@ function round2(n: number): number {
 const server = new McpServer({
   name: 'fino',
   version: '1.0.0',
+}, {
+  instructions: `Fino is a local-first personal finance MCP server. It connects to real bank accounts via Plaid, stores transactions in SQLite, and provides tools for financial analysis.
+
+Key capabilities:
+- Query transactions by date, category, merchant, or amount range
+- Get account balances and net worth across all connected institutions
+- Generate spending breakdowns by category with percentages
+- Compare income vs spending month over month
+- Search transactions by merchant name
+- Force sync with Plaid to get latest data (auto-syncs if data is stale)
+
+Financial memory system:
+- search_learnings / get_learning: Two-step retrieval of persistent financial knowledge (income profile, budget targets, spending patterns, rules, goals). Call search_learnings first to get the index, then get_learning for specific IDs.
+- save_learning: Store insights that persist across conversations. Always search first to avoid duplicates.
+- Learnings accumulate over time as the agent analyzes transactions and the user shares context.
+
+Important conventions:
+- Plaid amounts: positive = money out (spending), negative = money in (income)
+- Transfers between connected accounts should be excluded from spending analysis
+- Credit card payments to connected cards are internal movements, not real spending
+- All personal financial data stays in the local SQLite database, never exposed externally`,
 });
 
 // ─── Manual sync tool ────────────────────────────────────────────────
