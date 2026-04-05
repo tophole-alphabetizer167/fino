@@ -9,6 +9,7 @@ import accountsRoutes from './routes/accounts.js';
 import transactionsRoutes from './routes/transactions.js';
 import spendingRoutes from './routes/spending.js';
 import importRoutes from './routes/import.js';
+import learningsRoutes from './routes/learnings.js';
 
 // Ensure data directory and db exist
 import './db/index.js';
@@ -24,6 +25,7 @@ app.route('/api/accounts', accountsRoutes);
 app.route('/api/transactions', transactionsRoutes);
 app.route('/api/spending', spendingRoutes);
 app.route('/api/import', importRoutes);
+app.route('/api/learnings', learningsRoutes);
 
 app.get('/api/health', (c) => c.json({ status: 'ok' }));
 

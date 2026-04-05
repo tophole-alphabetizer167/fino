@@ -5,9 +5,12 @@ description: Quick financial health check showing balances, net worth, current m
 
 Run a quick financial health check by calling these MCP tools:
 
+0. Call `search_learnings` (no args) to see the memory index. If budget targets or spending patterns exist, call `get_learning` to load the relevant ones.
 1. Call `get_balances` to get current account balances and net worth
 2. Call `get_spending_summary` with `start_date` set to the first day of the current month and `end_date` set to today
 3. Call `get_monthly_comparison` with `months` set to 3
+
+After presenting results, if the data contradicts or extends existing learnings, call `save_learning` with the existing learning's ID to update it. Only save new learnings for patterns that are missing from memory and not derivable from a single tool call.
 
 ## Transfer and Loan Payment Handling
 

@@ -15,9 +15,11 @@
     "lucide-react": "^0.468.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
     "react-plaid-link": "^3.6.1",
     "react-router-dom": "^7.5.0",
     "recharts": "^2.15.3",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.2.0"
   },
   "devDependencies": {

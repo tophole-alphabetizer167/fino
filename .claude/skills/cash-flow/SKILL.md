@@ -7,6 +7,7 @@ Analyze cash flow trends over the last 6 months and project forward.
 
 Call these MCP tools:
 
+0. Call `search_learnings` (no args) to see the memory index. Check for income profile, spending targets, goals, and investment plan. Call `get_learning` for the specific IDs you need.
 1. `get_monthly_comparison` with `months` set to 6
 2. `get_balances` for current account balances
 
@@ -52,3 +53,5 @@ At the current average monthly net rate:
 Note any trends: is income growing or shrinking? Is spending accelerating? Are there seasonal patterns? Which direction is the savings rate moving?
 
 Format as clean markdown with tables. Use currency formatting. Keep observations concise and actionable.
+
+**After presenting results:** If income or spending patterns have changed from what's stored in learnings, update the existing learning by ID via `save_learning`. Only save new learnings for insights that are not derivable from a single tool call and are missing from memory.

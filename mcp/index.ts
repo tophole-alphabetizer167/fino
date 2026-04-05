@@ -530,6 +530,149 @@ server.tool('get_monthly_comparison', 'Compare income vs spending month over mon
   return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };
 }));
 
+// ─── Learnings / Memory tools ───────────────────────────────────────
+// Two-step retrieval: search_learnings (descriptions) → get_learning (content by ID)
+
+server.tool('search_learnings', 'Step 1 of memory retrieval. Search stored financial learnings by description. Returns an index of matching memories with id, type, description, period, and timestamps — but NOT full content. The agent reads this index, decides which memories are relevant based on descriptions and temporal context, then calls get_learning for specific IDs.', {
+  query: z.string().optional().describe('Search term to match against descriptions (case-insensitive). Omit to list all active learnings.'),
+  memory_type: z.enum(['profile', 'budget', 'pattern', 'rule', 'fact', 'anomaly', 'recommendation', 'goal']).optional().describe('Filter by memory type'),
+  include_stale: z.boolean().optional().default(false).describe('Include stale/archived memories'),
+  limit: z.number().optional().default(25).describe('Max results to return (default 25)'),
+}, async ({ query, memory_type, include_stale, limit }) => {
+  const conditions = [];
+  if (!include_stale) conditions.push(eq(schema.learnings.isStale, false));
+  if (memory_type) conditions.push(eq(schema.learnings.memoryType, memory_type));
+  if (query) {
+    // Case-insensitive multi-word matching: all words must appear in the description
+    const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+    for (const word of words) {
+      conditions.push(sql`lower(${schema.learnings.description}) LIKE ${'%' + word + '%'}`);
+    }
+  }
+
+  const where = conditions.length > 0 ? and(...conditions) : undefined;
+  const rows = await db.select({
+    id: schema.learnings.id,
+    memoryType: schema.learnings.memoryType,
+    description: schema.learnings.description,
+    period: schema.learnings.period,
+    isStale: schema.learnings.isStale,
+    createdAt: schema.learnings.createdAt,
+    updatedAt: schema.learnings.updatedAt,
+  })
+    .from(schema.learnings)
+    .where(where)
+    .orderBy(desc(schema.learnings.updatedAt))
+    .limit(limit);
+
+  if (rows.length === 0) {
+    return { content: [{ type: 'text' as const, text: 'No learnings found matching your criteria.' }] };
+  }
+
+  const index = rows.map(r => {
+    const updated = r.updatedAt ? r.updatedAt.toISOString().split('T')[0] : 'unknown';
+    const created = r.createdAt ? r.createdAt.toISOString().split('T')[0] : 'unknown';
+    const staleTag = r.isStale ? ' [STALE]' : '';
+    return `- **[${r.memoryType}]** ${r.description}${staleTag}\n  id: \`${r.id}\` | period: ${r.period || 'n/a'} | created: ${created} | updated: ${updated}`;
+  });
+
+  return { content: [{ type: 'text' as const, text: `${rows.length} learnings found:\n\n${index.join('\n')}` }] };
+});
+
+server.tool('get_learning', 'Step 2 of memory retrieval. Load the full markdown content of a specific learning by ID. Call search_learnings first to find relevant IDs.', {
+  id: z.string().describe('Learning ID to retrieve'),
+}, async ({ id }) => {
+  const rows = await db.select().from(schema.learnings).where(eq(schema.learnings.id, id));
+  if (rows.length === 0) {
+    return { content: [{ type: 'text' as const, text: `No learning found with id "${id}".` }] };
+  }
+  const r = rows[0];
+  const updated = r.updatedAt ? r.updatedAt.toISOString().split('T')[0] : 'unknown';
+  const created = r.createdAt ? r.createdAt.toISOString().split('T')[0] : 'unknown';
+  return { content: [{ type: 'text' as const, text: `**[${r.memoryType}] ${r.description}**\nID: ${r.id} | Period: ${r.period || 'n/a'} | Stale: ${r.isStale} | Created: ${created} | Updated: ${updated}\n\n${r.content}` }] };
+});
+
+server.tool('save_learning', 'Save a financial learning. IMPORTANT: Before creating a new learning, always call search_learnings first to check if a similar one exists. If it does, pass the existing ID to update it instead of creating a duplicate.', {
+  id: z.string().optional().describe('Existing learning ID to update. Omit to create new.'),
+  memory_type: z.enum(['profile', 'budget', 'pattern', 'rule', 'fact', 'anomaly', 'recommendation', 'goal']).describe('Type of memory'),
+  description: z.string().max(500).describe('Short searchable description (1-2 sentences). Write it like a search-optimized summary.'),
+  content: z.string().max(5000).describe('Full markdown content (max 5000 chars). Be concise.'),
+  period: z.string().optional().describe('Time period: use YYYY-MM for a month, YYYY-QN for quarter, or "all-time"'),
+}, async ({ id, memory_type, description, content, period }) => {
+  const now = new Date();
+
+  if (id) {
+    // Update existing
+    const existing = await db.select().from(schema.learnings).where(eq(schema.learnings.id, id));
+    if (existing.length === 0) {
+      return { content: [{ type: 'text' as const, text: `No learning found with id "${id}". Omit id to create new.` }] };
+    }
+    await db.update(schema.learnings)
+      .set({ memoryType: memory_type, description, content, period, updatedAt: now, isStale: false })
+      .where(eq(schema.learnings.id, id));
+    return { content: [{ type: 'text' as const, text: `Updated learning "${id}".\n\n**${description}**` }] };
+  }
+
+  // Creating new — check for potential duplicates
+  const dupeCheck = await db.select({
+    id: schema.learnings.id,
+    memoryType: schema.learnings.memoryType,
+    description: schema.learnings.description,
+  })
+    .from(schema.learnings)
+    .where(and(
+      eq(schema.learnings.memoryType, memory_type),
+      eq(schema.learnings.isStale, false),
+    ))
+    .orderBy(desc(schema.learnings.updatedAt))
+    .limit(5);
+
+  const learningId = `learn_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  await db.insert(schema.learnings).values({
+    id: learningId,
+    memoryType: memory_type,
+    description,
+    content,
+    period,
+    isStale: false,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  let response = `Saved learning "${learningId}".\n\n**${description}**`;
+
+  if (dupeCheck.length > 0) {
+    const dupeList = dupeCheck.map(d => `  - [${d.memoryType}] ${d.description} (id: \`${d.id}\`)`).join('\n');
+    response += `\n\n⚠ Existing ${memory_type} learnings — consider updating one of these instead of creating duplicates:\n${dupeList}`;
+  }
+
+  return { content: [{ type: 'text' as const, text: response }] };
+});
+
+server.tool('mark_learning_stale', 'Mark a learning as stale/outdated. Excluded from default searches but kept for history.', {
+  id: z.string().describe('Learning ID to mark as stale'),
+}, async ({ id }) => {
+  const existing = await db.select().from(schema.learnings).where(eq(schema.learnings.id, id));
+  if (existing.length === 0) {
+    return { content: [{ type: 'text' as const, text: `No learning found with id "${id}".` }] };
+  }
+  await db.update(schema.learnings)
+    .set({ isStale: true, updatedAt: new Date() })
+    .where(eq(schema.learnings.id, id));
+  return { content: [{ type: 'text' as const, text: `Marked "${id}" as stale.` }] };
+});
+
+server.tool('delete_learning', 'Permanently delete a learning. Prefer mark_learning_stale to keep history.', {
+  id: z.string().describe('Learning ID to delete'),
+}, async ({ id }) => {
+  const existing = await db.select().from(schema.learnings).where(eq(schema.learnings.id, id));
+  if (existing.length === 0) {
+    return { content: [{ type: 'text' as const, text: `No learning found with id "${id}".` }] };
+  }
+  await db.delete(schema.learnings).where(eq(schema.learnings.id, id));
+  return { content: [{ type: 'text' as const, text: `Deleted learning "${id}".` }] };
+});
+
 // ─── Start ──────────────────────────────────────────────────────────
 
 async function main() {

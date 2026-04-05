@@ -69,6 +69,30 @@ export const transactions = sqliteTable('transactions', {
   index('transactions_import_hash_idx').on(table.importHash),
 ]);
 
+// ─── Learnings / Memory ─────────────────────────────────────────────
+// Single flexible table for all agent memory: spending rules, net worth facts,
+// budget targets, patterns, anomalies, profile info, recommendations.
+// Content is markdown. Description enables semantic search without loading full content.
+export const learnings = sqliteTable('learnings', {
+  id: text('id').primaryKey(),
+  // Semantic type so agent can filter: profile, budget, pattern, rule, fact, anomaly, recommendation, goal
+  memoryType: text('memory_type').notNull(),
+  // Short searchable description (agent matches against this before loading full content)
+  description: text('description').notNull(),
+  // Full markdown content
+  content: text('content').notNull(),
+  // Optional: which period this relates to (e.g. "2026-03", "2025-Q4", "all-time")
+  period: text('period'),
+  // Stale memories are kept for history but excluded from active retrieval
+  isStale: integer('is_stale', { mode: 'boolean' }).notNull().default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  index('learnings_type_idx').on(table.memoryType),
+  index('learnings_stale_idx').on(table.isStale),
+  index('learnings_period_idx').on(table.period),
+]);
+
 export const syncLog = sqliteTable('sync_log', {
   id: text('id').primaryKey(),
   itemId: text('item_id').references(() => items.id).notNull(),

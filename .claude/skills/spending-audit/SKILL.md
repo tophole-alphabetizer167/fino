@@ -7,6 +7,7 @@ Perform a thorough spending audit over the last 90 days.
 
 Call these MCP tools:
 
+0. Call `search_learnings` (no args) to see the memory index. Check for existing patterns, rules, budget targets, and anomalies. Call `get_learning` for the specific IDs relevant to the audit. Compare new findings against existing learnings.
 1. `get_transactions` with `start_date` set to 90 days ago, `end_date` set to today, `limit` set to 500
 2. If total exceeds 500, make additional calls with `offset` to get all transactions
 3. `get_spending_summary` with the same date range
@@ -57,3 +58,5 @@ Based on the analysis, suggest specific areas where spending could be reduced, w
 List the transfers that were filtered out: total amount, count, and the top transfer counterparties. This lets the user verify nothing real was accidentally excluded.
 
 Format as clean markdown with tables. Use currency formatting.
+
+**After presenting results:** Only save learnings for patterns that contradict or extend existing memories and are not derivable from a single tool call. Search existing learnings first, update by ID rather than creating duplicates. Mark stale any learnings that are no longer accurate.

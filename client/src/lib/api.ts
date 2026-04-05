@@ -159,4 +159,23 @@ export const api = {
 
   getManualAccounts: () =>
     request<Array<{ id: string; name: string; type: string; subtype: string | null; source: string }>>('/import/accounts'),
+
+  // Learnings
+  getLearnings: () =>
+    request<Array<{
+      id: string;
+      memoryType: string;
+      description: string;
+      content: string;
+      period: string | null;
+      isStale: boolean;
+      createdAt: string;
+      updatedAt: string;
+    }>>('/learnings'),
+
+  markLearningStale: (id: string) =>
+    request<{ ok: boolean }>(`/learnings/${encodeURIComponent(id)}/stale`, { method: 'PATCH' }),
+
+  deleteLearning: (id: string) =>
+    request<{ ok: boolean }>(`/learnings/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 };

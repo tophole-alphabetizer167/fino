@@ -7,6 +7,7 @@ Generate a detailed monthly financial report. If the user specifies a month (e.g
 
 Call these MCP tools:
 
+0. Call `search_learnings` (no args) to see the memory index. Check for budget targets, spending patterns, and transfer rules. Call `get_learning` for the specific IDs you need.
 1. `get_balances` for current account balances
 2. `get_transactions` with `start_date` and `end_date` covering the full month, `limit` set to 500
 3. `get_spending_summary` with the same date range
@@ -54,3 +55,5 @@ The single highest-amount non-transfer transaction with date, merchant, amount, 
 Compare to the previous month: is spending up or down? Which categories changed the most? Is income stable?
 
 Format as clean markdown. Use currency formatting ($X,XXX.XX). Do not show raw JSON.
+
+**After presenting results:** If budget targets exist in learnings, compare actual spending to targets and flag over-budget categories. Only save new learnings for patterns that contradict or extend existing memories and are not derivable from a single tool call. Always update existing learnings (by ID) rather than creating duplicates.
