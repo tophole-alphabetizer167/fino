@@ -8,11 +8,11 @@ This project provides an MCP server (`mcp/index.ts`) with these tools:
 
 - `sync_transactions` - Force sync with Plaid (all items or specific item_id)
 - `get_accounts` - List accounts with balances (filter by account_type)
-- `get_transactions` - Query transactions (filter by date range, account, category, amount range)
+- `get_transactions` - Query transactions (filter by date range, account, category, amount range). Returns CSV by default, pass `format: "json"` for structured data
 - `get_balances` - Net worth summary: cash, credit, investments, loans
-- `get_spending_summary` - Spending by category with percentages for a date range
-- `get_monthly_comparison` - Income vs spending per month (default 3 months)
-- `search_transactions` - Text search on merchant name
+- `get_spending_summary` - Spending by category with percentages for a date range. Includes ALL categories (TRANSFER_IN/TRANSFER_OUT shown as rows, not hidden)
+- `get_monthly_comparison` - Income vs spending per month (default 3 months). Includes transfer breakdown per month so the intelligence layer can adjust
+- `search_transactions` - Text search on merchant name. Returns CSV by default
 
 All read tools auto-sync with Plaid if data is older than SYNC_THRESHOLD_HOURS (default 4).
 
@@ -47,7 +47,7 @@ Credit card payments are real spending and should always be counted. For bank tr
 2. For each transfer transaction, check if the merchant/counterparty matches a connected account or institution.
 3. If the matching account is connected: exclude it (money just moved between the user's own accounts, e.g., checking to savings at the same bank).
 4. If there is no matching connected account: treat it as real spending or income (money left or entered the user's ecosystem).
-5. The MCP tools `get_spending_summary` and `get_monthly_comparison` exclude TRANSFER_IN/TRANSFER_OUT by default. The skills layer adds the smarter logic of verifying against connected accounts.
+5. The MCP tools return all data truthfully including transfers. `get_spending_summary` includes TRANSFER_IN and TRANSFER_OUT as categories in the breakdown. `get_monthly_comparison` includes transfers in the main totals and breaks out transfer amounts separately. The skills layer (the intelligence layer) decides which transfers are internal vs external by checking merchant names against connected institutions via `get_accounts`.
 
 ## Database Rules
 

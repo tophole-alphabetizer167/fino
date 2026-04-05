@@ -7,7 +7,7 @@ Analyze cash flow trends over the last 6 months and project forward.
 
 Call these MCP tools:
 
-1. `get_monthly_comparison` with `months` set to 6 (transfers are excluded by default)
+1. `get_monthly_comparison` with `months` set to 6
 2. `get_balances` for current account balances
 
 ## Transfer and Loan Payment Handling
@@ -15,14 +15,16 @@ Call these MCP tools:
 Always call `get_accounts` first to know what accounts are connected.
 
 **LOAN_PAYMENTS (always count as spending):**
-The `get_monthly_comparison` tool excludes TRANSFER_IN/TRANSFER_OUT but keeps LOAN_PAYMENTS. Loan payments (mortgage, credit card, auto, student, BNPL) are real expenses and should always be counted in spending. If the spending numbers look off, call `get_transactions` for that month and verify LOAN_PAYMENTS are included. Credit card payments show on both sides; only count the outflow (positive amount) as spending.
+Loan payments (mortgage, credit card, auto, student, BNPL) are real expenses and should always be counted in spending. Credit card payments show on both sides; only count the outflow (positive amount) as spending.
 
-**TRANSFER_IN / TRANSFER_OUT (conditional):**
-The MCP tool excludes all transfers by default, but some may be real spending (money leaving to non-connected accounts). If income or spending numbers look suspiciously low:
-- Call `get_transactions` for that month and check excluded transfers
-- For each transfer, check if the counterparty matches a connected institution
-- Transfers to/from non-connected accounts should be added back as real spending or income
-- If you spot adjustments needed, note them and show corrected numbers
+**TRANSFER_IN / TRANSFER_OUT (the model decides):**
+The `get_monthly_comparison` tool returns raw totals INCLUDING transfers, plus a separate `transfers` field showing `in` and `out` amounts per month. Use this to adjust the numbers:
+1. Check the `transfers` field to see how much is TRANSFER_IN and TRANSFER_OUT each month
+2. Call `get_accounts` to get connected institutions
+3. If needed, call `get_transactions` filtered to TRANSFER_IN or TRANSFER_OUT to see the actual counterparties
+4. Subtract verified internal transfers (between connected accounts) from spending/income
+5. Keep external transfers (to/from non-connected accounts) as real spending or income
+6. Show both the raw totals and adjusted totals so the user can verify
 
 From the results, calculate and present:
 
